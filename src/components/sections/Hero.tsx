@@ -6,10 +6,11 @@ import { useEffect, useState, useRef } from "react";
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
+  // Buat nahan animasi sampai preloader selesai
   const [isPreloaderDone, setIsPreloaderDone] = useState(false); 
   const heroRef = useRef<HTMLElement>(null);
 
-  // 1. Logika nunggu Preloader kelar (2.5 detik)
+  // 1. Logika nunggu Preloader kelar (2.5 detik = 2500ms)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPreloaderDone(true);
@@ -17,11 +18,10 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Logika deteksi scroll (CUMA JALAN SEKALI)
+  // 2. Logika deteksi scroll (Animasi cuma jalan sekali)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // PERUBAHAN DI SINI: Kalau masuk layar, set true, lalu langsung matikan pemantauannya
         if (entry.isIntersecting) {
           setIsVisible(true);
           observer.unobserve(entry.target);
@@ -211,7 +211,11 @@ export default function Hero() {
                   <div className="bg-white/90 border border-gray-100 rounded-2xl p-4 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <p className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
-                        <span className="text-blue-500">🥛</span> Produksi Susu
+                        {/* ICON SUSU / BEAKER */}
+                        <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                        Produksi Susu
                       </p>
                     </div>
                     <div className="h-12 w-full relative">
@@ -226,10 +230,19 @@ export default function Hero() {
                   {/* Peringatan AI */}
                   <div className="bg-white/90 border border-gray-100 rounded-2xl p-4 shadow-sm">
                     <p className="text-xs font-extrabold text-gray-900 mb-3 flex items-center gap-1.5">
-                      <span className="text-yellow-500">⚠️</span> Peringatan AI (5)
+                      {/* ICON WARNING (SOLID) */}
+                      <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      Peringatan AI (5)
                     </p>
                     <div className="bg-red-50/80 rounded-xl p-2.5 flex items-start gap-2.5 border border-red-100/50 hover:bg-red-100 transition-colors cursor-pointer">
-                      <div className="w-8 h-8 rounded-lg bg-red-200/50 shrink-0 border border-red-200 flex items-center justify-center text-xs">🐄</div>
+                      <div className="w-8 h-8 rounded-lg bg-red-200/50 shrink-0 border border-red-200 flex items-center justify-center text-red-600">
+                        {/* ICON TAG / SAPI */}
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                      </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
                           <p className="text-[11px] font-black text-red-700">Risiko Mastitis Tinggi</p>
@@ -246,7 +259,10 @@ export default function Hero() {
                   <div className="absolute top-0 right-0 w-24 h-24 bg-green-200/40 rounded-full blur-2xl -mr-10 -mt-10"></div>
                   
                   <div className="flex items-center gap-2 mb-3 relative z-10">
-                    <span className="text-blue-600 text-base">🤖</span>
+                    {/* ICON ROBOT / AI CHIP */}
+                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
                     <h4 className="text-xs font-black text-gray-900 tracking-tight">AI Advice</h4>
                   </div>
                   <p className="text-[10px] text-gray-600 mb-4 font-medium leading-relaxed relative z-10">

@@ -54,18 +54,16 @@ export default function Features() {
     },
   ];
 
-  // Logika untuk mendeteksi apakah komponen ini sudah terlihat di layar
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Matikan observer setelah animasi jalan sekali biar performa ringan
           observer.unobserve(entry.target); 
         }
       },
       {
-        threshold: 0.1, // Animasi mulai saat 10% bagian ini terlihat di layar
+        threshold: 0.1, 
       }
     );
 
@@ -79,22 +77,30 @@ export default function Features() {
   }, []);
 
   return (
-    <section id="fitur" className="bg-white py-20 lg:py-28 relative z-20" ref={sectionRef}>
+    <section id="fitur" className="bg-slate-50 pt-10 pb-20 lg:pt-12 lg:pb-28 relative z-20" ref={sectionRef}>
       <div className="w-full mx-auto px-6 lg:px-16 xl:px-24 max-w-[1600px]">
         
         {/* HEADER JUDUL FITUR */}
         <div 
-          className={`flex flex-col items-center text-center mb-16 transform transition-all duration-1000 ease-out ${
+          className={`flex flex-col items-center text-center mb-12 lg:mb-16 transform transition-all duration-1000 ease-out ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
           }`}
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+          {/* BADGE PREMIUM BARU */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-slate-800 font-bold text-sm mb-5 border border-slate-200 shadow-sm">
+            <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            Fitur Unggulan AiMoo
+          </div>
+          
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
             Teknologi Cerdas untuk <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-700">
               Hasil Peternakan Maksimal
             </span>
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl font-medium">
+          <p className="text-slate-600 text-lg max-w-2xl font-medium">
             Tinggalkan cara manual. AiMoo menghadirkan ekosistem digital lengkap untuk memantau, menganalisis, dan meningkatkan produktivitas sapi Anda.
           </p>
         </div>
@@ -105,32 +111,30 @@ export default function Features() {
           {features.map((feature, index) => (
             <div 
               key={feature.id}
-              // Fade up animation untuk kotak fitur
               className={`transform transition-all duration-1000 ease-out ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"
               }`}
-              // Delay ditambah 300ms supaya Header muncul duluan, baru kotak-kotaknya berurutan
               style={{ transitionDelay: `${(index * 150) + 300}ms` }}
             >
-              <div className="group h-full bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-green-900/5 hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer flex flex-col">
+              <div className="group h-full bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer flex flex-col">
                 
                 {/* Icon Container */}
-                <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300 shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shrink-0">
                   {feature.icon}
                 </div>
                 
                 {/* Title & Description */}
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-700 transition-colors duration-300">
+                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-emerald-700 transition-colors duration-300">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
+                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
                   {feature.description}
                 </p>
                 
                 {/* Link CTA */}
                 <Link 
                   href={feature.link}
-                  className="inline-flex items-center text-sm font-semibold text-green-600 group-hover:text-green-700 transition-colors mt-auto"
+                  className="inline-flex items-center text-sm font-semibold text-emerald-600 group-hover:text-emerald-700 transition-colors mt-auto"
                 >
                   Pelajari lebih lanjut
                   <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
