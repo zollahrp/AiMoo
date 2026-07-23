@@ -6,23 +6,26 @@ import { useEffect, useState, useRef } from "react";
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
-  // STATE BARU: Buat nahan animasi sampai preloader selesai
   const [isPreloaderDone, setIsPreloaderDone] = useState(false); 
   const heroRef = useRef<HTMLElement>(null);
 
-  // 1. Logika nunggu Preloader kelar (2.5 detik = 2500ms)
+  // 1. Logika nunggu Preloader kelar (2.5 detik)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPreloaderDone(true);
-    }, 2500); // Harus sama dengan total waktu removeTimer di Preloader.tsx
+    }, 2500); 
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Logika deteksi scroll
+  // 2. Logika deteksi scroll (CUMA JALAN SEKALI)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
+        // PERUBAHAN DI SINI: Kalau masuk layar, set true, lalu langsung matikan pemantauannya
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
       },
       { threshold: 0.1 }
     );
@@ -35,7 +38,7 @@ export default function Hero() {
     };
   }, []);
 
-  // VARIABEL BANTUAN: Animasi cuma jalan KALAU kelihatan di layar DAN preloader udah kelar
+  // Animasi cuma jalan KALAU kelihatan di layar DAN preloader udah kelar
   const shouldAnimate = isVisible && isPreloaderDone;
 
   return (
@@ -208,7 +211,7 @@ export default function Hero() {
                   <div className="bg-white/90 border border-gray-100 rounded-2xl p-4 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <p className="text-xs font-extrabold text-gray-900 flex items-center gap-1.5">
-                        <span className="text-blue-500">📊</span> Produksi Susu
+                        <span className="text-blue-500">🥛</span> Produksi Susu
                       </p>
                     </div>
                     <div className="h-12 w-full relative">

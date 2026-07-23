@@ -79,28 +79,43 @@ export default function Features() {
   }, []);
 
   return (
-    <section id="fitur" className="bg-white py-16 lg:py-24 relative z-20" ref={sectionRef}>
+    <section id="fitur" className="bg-white py-20 lg:py-28 relative z-20" ref={sectionRef}>
       <div className="w-full mx-auto px-6 lg:px-16 xl:px-24 max-w-[1600px]">
         
+        {/* HEADER JUDUL FITUR */}
+        <div 
+          className={`flex flex-col items-center text-center mb-16 transform transition-all duration-1000 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+          }`}
+        >
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+            Teknologi Cerdas untuk <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">
+              Hasil Peternakan Maksimal
+            </span>
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl font-medium">
+            Tinggalkan cara manual. AiMoo menghadirkan ekosistem digital lengkap untuk memantau, menganalisis, dan meningkatkan produktivitas sapi Anda.
+          </p>
+        </div>
+
         {/* Grid untuk 4 kotak fitur */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
           
-          {/* Di sini kita tambahin parameter 'index' buat ngatur jeda waktu (stagger) animasi */}
           {features.map((feature, index) => (
             <div 
               key={feature.id}
-              // Ini kelas buat animasi muncul awal (Fade Up)
+              // Fade up animation untuk kotak fitur
               className={`transform transition-all duration-1000 ease-out ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"
               }`}
-              // Delay animasi disesuaikan dengan urutan kotak (kotak ke-2 telat 150ms, kotak ke-3 telat 300ms, dst)
-              style={{ transitionDelay: `${index * 150}ms` }}
+              // Delay ditambah 300ms supaya Header muncul duluan, baru kotak-kotaknya berurutan
+              style={{ transitionDelay: `${(index * 150) + 300}ms` }}
             >
-              {/* Kotak Asli (Ini yang mengatur animasi Hover) */}
-              <div className="group h-full bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-green-900/5 hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer">
+              <div className="group h-full bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-green-900/5 hover:-translate-y-2 transition-all duration-300 ease-in-out cursor-pointer flex flex-col">
                 
                 {/* Icon Container */}
-                <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300 shrink-0">
                   {feature.icon}
                 </div>
                 
@@ -108,7 +123,7 @@ export default function Features() {
                 <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-700 transition-colors duration-300">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 h-auto md:h-16 xl:h-20">
+                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
                   {feature.description}
                 </p>
                 
