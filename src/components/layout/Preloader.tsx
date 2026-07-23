@@ -38,13 +38,9 @@ export default function Preloader() {
         muted
         playsInline
         loop
-        className="w-48 h-48 md:w-64 md:h-64 object-contain"
+        // PERUBAHAN DI SINI: Teks dihapus dan ukuran video diperbesar signifikan
+        className="w-72 h-72 md:w-96 md:h-96 lg:w-[600px] lg:h-[400px] object-contain"
       ></video>
-      
-      {/* Tambahan teks kecil animasi pulse (bisa dihapus kalau gak suka) */}
-      <p className="mt-4 text-green-600 font-bold tracking-widest text-sm animate-pulse">
-        MEMUAT AIMOO...
-      </p>
     </div>
   );
 }
