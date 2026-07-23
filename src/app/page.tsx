@@ -6,11 +6,11 @@ import Features from "@/components/sections/Features";
 import Stats from "@/components/sections/Stats";
 import Calculator from "@/components/sections/Calculator";
 import Pricing from "@/components/sections/Pricing";
+import About from "@/components/sections/About"; 
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      {/* Taruh Preloader di paling atas */}
       <Preloader /> 
       
       <Navbar />
@@ -19,6 +19,8 @@ export default function Home() {
       <Stats />
       <Calculator />
       <Pricing />
+      <About /> 
+
       <Footer />
     </main>
   );
