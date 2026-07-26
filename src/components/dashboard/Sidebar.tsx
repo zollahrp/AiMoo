@@ -4,6 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
+// Import komponen cuaca yang sudah dipisah
+import WeatherCard from "./WeatherCard"; 
+
 export default function Sidebar() {
   const pathname = usePathname();
 
@@ -19,9 +22,10 @@ export default function Sidebar() {
     { name: "Laporan", path: "/dashboard/laporan", icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
     { name: "Pengaturan", path: "/dashboard/pengaturan", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
   ];
-  
+
   return (
     <aside className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col fixed left-0 top-0 overflow-y-auto">
+      
       {/* Logo */}
       <div className="flex items-center justify-center h-20 border-b border-slate-100 shrink-0">
         <Link href="/" className="flex items-center gap-2">
@@ -55,18 +59,8 @@ export default function Sidebar() {
       {/* Weather Card & Profile (Bottom) */}
       <div className="p-4 border-t border-slate-100 space-y-4 bg-white shrink-0">
         
-        {/* Weather Card */}
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-          <h4 className="text-sm font-bold text-slate-900">Sukasari Dairy Farm</h4>
-          <p className="text-xs text-slate-500 mb-3">Batu, Jawa Timur</p>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">☀️</span>
-            <div>
-              <p className="text-lg font-black text-slate-900 leading-tight">26°C</p>
-              <p className="text-xs font-medium text-slate-500">Cerah • Kel: 62%</p>
-            </div>
-          </div>
-        </div>
+        {/* Panggil komponen cuaca real-time di sini */}
+        <WeatherCard />
 
         {/* Profile Card */}
         <button className="w-full flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-colors text-left border border-transparent hover:border-slate-100">
@@ -83,6 +77,7 @@ export default function Sidebar() {
         </button>
 
       </div>
+      
     </aside>
   );
 }
