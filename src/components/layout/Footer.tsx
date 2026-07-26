@@ -1,6 +1,17 @@
+"use client"; // Wajib pakai ini buat interaksi klik & scroll
+
 import Link from "next/link";
 
 export default function Footer() {
+  // Fungsi untuk smooth scroll saat link diklik
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="bg-slate-950 text-slate-300 pt-20 pb-8 border-t border-slate-800 relative overflow-hidden">
       
@@ -14,7 +25,11 @@ export default function Footer() {
           
           {/* Kolom 1: Brand & Deskripsi (Lebih Lebar) */}
           <div className="lg:col-span-2 pr-0 lg:pr-8">
-            <Link href="/" className="flex items-center gap-2 mb-6">
+            <Link 
+              href="#hero" 
+              onClick={(e) => handleScrollTo(e, 'hero')} 
+              className="flex items-center gap-2 mb-6 transition-transform hover:scale-105 inline-block"
+            >
               {/* Logo AiMoo Text */}
               <span className="text-3xl font-black text-white tracking-tighter">
                 Ai<span className="text-emerald-500">Moo</span>
@@ -39,9 +54,9 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-6 tracking-wide">Produk</h4>
             <ul className="space-y-4 text-sm font-medium text-slate-400">
-              <li><Link href="#fitur" className="hover:text-emerald-400 transition-colors">Fitur Unggulan</Link></li>
-              <li><Link href="#kalkulator" className="hover:text-emerald-400 transition-colors">Kalkulator ROI</Link></li>
-              <li><Link href="#harga" className="hover:text-emerald-400 transition-colors">Harga & Paket</Link></li>
+              <li><Link href="#fitur" onClick={(e) => handleScrollTo(e, 'fitur')} className="hover:text-emerald-400 transition-colors">Fitur Unggulan</Link></li>
+              <li><Link href="#kalkulator" onClick={(e) => handleScrollTo(e, 'kalkulator')} className="hover:text-emerald-400 transition-colors">Kalkulator ROI</Link></li>
+              <li><Link href="#harga" onClick={(e) => handleScrollTo(e, 'harga')} className="hover:text-emerald-400 transition-colors">Harga & Paket</Link></li>
               <li><Link href="/dashboard" className="hover:text-emerald-400 transition-colors">Login Dashboard</Link></li>
             </ul>
           </div>
@@ -50,7 +65,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-6 tracking-wide">Perusahaan</h4>
             <ul className="space-y-4 text-sm font-medium text-slate-400">
-              <li><Link href="#tentang-kami" className="hover:text-emerald-400 transition-colors">Tentang Kami</Link></li>
+              <li><Link href="#tentang-kami" onClick={(e) => handleScrollTo(e, 'tentang-kami')} className="hover:text-emerald-400 transition-colors">Tentang Kami</Link></li>
               <li><Link href="#" className="hover:text-emerald-400 transition-colors">Institut Pertanian Bogor</Link></li>
               <li><Link href="#" className="hover:text-emerald-400 transition-colors">Hubungi Sales</Link></li>
               <li><Link href="#" className="hover:text-emerald-400 transition-colors">Pusat Bantuan</Link></li>
@@ -75,7 +90,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} AiMoo - Institut Pertanian Bogor. All rights reserved.
           </p>
           
-          {/* Ini dia elemen rahasianya wkwk */}
+          {/* Tagline Tim */}
           <div className="flex items-center gap-2 text-sm text-slate-400 bg-slate-900/50 py-2 px-4 rounded-full border border-slate-800">
             Dibuat dengan <span className="text-red-500 animate-pulse">❤️</span> oleh 
             <span className="font-bold text-emerald-400 tracking-tight ml-1">Tim Fadhli Cinta Sapi</span>
