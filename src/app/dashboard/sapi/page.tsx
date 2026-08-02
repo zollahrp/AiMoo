@@ -6,6 +6,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, doc, query, where, onSnapshot, getDoc, setDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import Swal from "sweetalert2";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const CHART_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#fbbf24", "#f97316", "#94a3b8"];
 
@@ -43,6 +44,10 @@ export default function SapiPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"Susu" | "Reproduksi" | "Kesehatan" | "Pakan">("Susu");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 🔥 STATE UNTUK GEMINI AI 🔥
+  const [aiInsight, setAiInsight] = useState<string>("Menganalisis data sapi...");
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<any>({
     date: new Date().toISOString().split("T")[0],
@@ -137,9 +142,17 @@ export default function SapiPage() {
         setIsPulsing(true);
         setTimeout(() => setIsPulsing(false), 1000);
 
-        const newTemp = Number((38.2 + Math.random() * 0.8).toFixed(1)); 
-        const newRumi = Math.floor(400 + Math.random() * 30); 
-        const newSteps = Math.floor(1200 + Math.random() * 50); 
+        // Simulasi data - sesekali kita buat demam biar AI bisa mendeteksi Mastitis Klinis
+        const chance = Math.random();
+        let newTemp = Number((38.2 + Math.random() * 0.8).toFixed(1)); 
+        let newRumi = Math.floor(400 + Math.random() * 30); 
+        let newSteps = Math.floor(1200 + Math.random() * 50); 
+
+        // 5% kemungkinan suhu melonjak (simulasi sakit)
+        if (chance > 0.95) {
+          newTemp = Number((39.3 + Math.random() * 0.5).toFixed(1)); // Demam
+          newRumi = Math.floor(250 + Math.random() * 50); // Ruminasi turun
+        }
 
         try {
           await updateDoc(doc(db, "cows", currentCowId), {
@@ -152,6 +165,61 @@ export default function SapiPage() {
     }
     return () => clearInterval(interval);
   }, [isIotActive, currentCowId, farmId]);
+
+  // PENGOLAHAN DATA SUSU UNTUK AI
+  const todayStr = new Date().toISOString().split("T")[0];
+  let yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+
+  const todayMilk = milkRecords.filter(m => m.date.startsWith(todayStr)).reduce((sum, m) => sum + Number(m.quantityLiter), 0);
+  const yesterdayMilk = milkRecords.filter(m => m.date.startsWith(yesterdayStr)).reduce((sum, m) => sum + Number(m.quantityLiter), 0);
+  const milkTrend = yesterdayMilk > 0 ? ((todayMilk - yesterdayMilk) / yesterdayMilk) * 100 : 0;
+
+  const fetchGeminiInsight = async () => {
+    if (!cowData || !process.env.NEXT_PUBLIC_GEMINI_API_KEY) return;
+
+    setIsAiLoading(true);
+    // Teks sementara saat loading
+    setAiInsight("STATUS: MEMPROSES...\nANALISIS: Mengumpulkan data IoT dan performa produksi untuk dianalisis oleh AI...");
+
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
+
+      const prompt = `
+        Kamu adalah sistem AI penganalisis kesehatan dan performa peternakan sapi perah (AI Moo).
+        Sapi: ${cowData.name} (Tag: ${cowData.tagNumber})
+        - Susu Hari Ini: ${todayMilk.toFixed(1)} Liter (Trend: ${milkTrend.toFixed(1)}% dari kemarin)
+        - Suhu Tubuh IoT: ${cowData.liveMetrics?.temperature || 38.5} °C
+        - Ruminasi IoT: ${cowData.liveMetrics?.rumination || 410} menit
+        - Langkah IoT: ${cowData.liveMetrics?.steps || 1250} langkah
+        
+        Tugas: 
+        1. Rangkum performa produksi susu dan pola IoT.
+        2. Analisis potensi penyakit (seperti Mastitis klinis/subklinis, gangguan pencernaan, atau stres panas).
+        
+        Berikan jawaban STRICT dengan format ini (TANPA EMOJI, TANPA BINTANG/MARKDOWN):
+        STATUS: [Pilih satu yang paling tepat: AMAN / PERINGATAN / SAKIT]
+        ANALISIS: [2-3 kalimat rangkuman keseluruhan performa dan saran petunjuk tindakan selanjutnya]
+      `;
+
+      const result = await model.generateContent(prompt);
+      setAiInsight(result.response.text());
+    } catch (error) {
+      console.error("Gagal memanggil Gemini API:", error);
+      setAiInsight("STATUS: ERROR\nANALISIS: Maaf, koneksi ke server AI terputus. Coba sinkronisasi ulang.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Panggil AI hanya saat sapi berganti (bukan tiap 5 detik)
+  useEffect(() => {
+    if (!isLoadingData && cowData) {
+      fetchGeminiInsight();
+    }
+  }, [currentCowId, isLoadingData]); // Dihapus dependensi IoT agar tidak spam API
 
   const getAge = (birthDate: string) => {
     if (!birthDate) return "-";
@@ -172,15 +240,6 @@ export default function SapiPage() {
     const d = new Date(isoString);
     return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   };
-
-  const todayStr = new Date().toISOString().split("T")[0];
-  let yesterdayDate = new Date();
-  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
-
-  const todayMilk = milkRecords.filter(m => m.date.startsWith(todayStr)).reduce((sum, m) => sum + Number(m.quantityLiter), 0);
-  const yesterdayMilk = milkRecords.filter(m => m.date.startsWith(yesterdayStr)).reduce((sum, m) => sum + Number(m.quantityLiter), 0);
-  const milkTrend = yesterdayMilk > 0 ? ((todayMilk - yesterdayMilk) / yesterdayMilk) * 100 : 0;
 
   const totalLactationMilk = milkRecords.reduce((sum, m) => sum + Number(m.quantityLiter), 0);
   const peakMilk = milkRecords.length > 0 ? Math.max(...milkRecords.map(m => Number(m.quantityLiter))) : 0;
@@ -207,7 +266,7 @@ export default function SapiPage() {
 
   // Gabung Semua Catatan
   const allNotes = [...healthRecords, ...reproRecords].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const recentNotes = allNotes.slice(0, 4); // Cuma ambil 4 buat di preview kotak
+  const recentNotes = allNotes.slice(0, 4); 
 
   const handleImageUpload = (e: any) => {
     const file = e.target.files[0];
@@ -677,13 +736,12 @@ export default function SapiPage() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-6 items-stretch">
           
           {/* Box A: Info Sapi */}
-          <div className="xl:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-shadow">
-            <div className="w-full sm:w-40 h-40 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-50">
+          <div className="xl:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-shadow">
+            <div className="w-full sm:w-32 h-32 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-50">
               <img src={cowData?.photoUrl || "/image/Logo AiMoo.png"} alt="Foto Sapi" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
               <div className="text-slate-500 font-medium">ID Sapi</div><div className="font-bold text-slate-900">{cowData?.tagNumber}</div>
-              <div className="text-slate-500 font-medium">Nama</div><div className="font-bold text-slate-900">{cowData?.name}</div>
               <div className="text-slate-500 font-medium">Status Repro</div><div className="font-bold text-indigo-600">{cowData?.currentStatus?.reproduction}</div>
               <div className="text-slate-500 font-medium">Kesehatan</div><div className={`font-bold ${cowData?.currentStatus?.health === 'Sehat' ? 'text-emerald-600' : 'text-red-500'}`}>{cowData?.currentStatus?.health}</div>
               <div className="text-slate-500 font-medium">Kelompok</div><div className="font-bold text-slate-900">{cowData?.group}</div>
@@ -691,44 +749,112 @@ export default function SapiPage() {
             </div>
           </div>
 
-          {/* Box B: AI Ringkasan */}
-          <div className="xl:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group cursor-pointer hover:shadow-md transition-shadow">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/50 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-purple-200/60 transition-colors duration-500"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
+          {/* Box B: AI Ringkasan (DENGAN TOMBOL SYNC) */}
+          {/* Box B: AI Ringkasan (DENGAN TOMBOL SYNC & UI BADGE) */}
+          <div className="xl:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/50 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-purple-200/60 transition-colors duration-500 pointer-events-none"></div>
+            
+            <div className="flex justify-between items-center mb-4 relative z-10">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span className="text-purple-500 text-lg group-hover:scale-110 group-hover:rotate-12 transition-transform">✨</span> AI Insight Hari Ini
+                <span className={`text-purple-600 transition-transform ${isAiLoading ? 'animate-spin' : 'group-hover:scale-110 group-hover:rotate-12'}`}>
+                  {/* SVG ICON AI / SPARKLES (Menggantikan Emoji ✨) */}
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </span> 
+                Diagnosis Cerdas AI Moo
               </h3>
-              {milkTrend < 0 ? (
-                <span className="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded border border-amber-200 flex items-center gap-1">⚠️ Perlu Perhatian</span>
-              ) : (
-                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-200 flex items-center gap-1">✅ Performa Baik</span>
-              )}
+              
+              <button 
+                onClick={fetchGeminiInsight}
+                disabled={isAiLoading}
+                className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1.5 border border-purple-100 disabled:opacity-50"
+              >
+                {/* SVG ICON REFRESH (Menggantikan Emoji 🔄) */}
+                <svg className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Sinkronisasi AI
+              </button>
             </div>
             
-            <div className={`p-4 rounded-xl border mb-4 flex-1 relative z-10 ${milkTrend < 0 ? 'bg-amber-50/50 border-amber-100/50' : 'bg-emerald-50/50 border-emerald-100/50'}`}>
-              <p className="text-xs text-slate-700 leading-relaxed mb-3">
-                {milkTrend < 0 ? `Produksi susu turun ${Math.abs(milkTrend).toFixed(1)}% vs hari kemarin.` : `Produksi susu stabil/naik. Performa sapi dalam kondisi optimal.`}
-              </p>
-              <p className="text-xs text-slate-800 leading-relaxed">
-                <span className="font-bold">Saran AI:</span> {milkTrend < 0 ? "Lakukan pemeriksaan kesehatan ambing dan cek konsumsi pakan hari ini." : "Pertahankan ransum dan pola pemerahan saat ini."}
-              </p>
-            </div>
+            {/* PENGOLAHAN OUTPUT GEMINI MENJADI UI CANTIK */}
+            {(() => {
+              // Misahkan text STATUS dan ANALISIS
+              const rawStatus = aiInsight.match(/STATUS:\s*(.*)/);
+              const rawAnalysis = aiInsight.match(/ANALISIS:\s*([\s\S]*)/);
+              
+              const statusText = rawStatus ? rawStatus[1].trim().toUpperCase() : (isAiLoading ? "MEMPROSES..." : "MENUNGGU DATA");
+              const analysisText = rawAnalysis ? rawAnalysis[1].trim() : aiInsight;
+
+              // Setting Warna Default
+              let badgeColor = "bg-slate-100 text-slate-700 border-slate-200 shadow-slate-500/10";
+              let cardBgColor = "bg-slate-50/50 border-slate-100/50";
+              let statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+
+              // Deteksi Kata Kunci
+              if (statusText.includes("AMAN")) {
+                badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200 shadow-sm shadow-emerald-500/20";
+                cardBgColor = "bg-emerald-50/30 border-emerald-100/50";
+                statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>;
+              } else if (statusText.includes("PERINGATAN")) {
+                badgeColor = "bg-amber-100 text-amber-800 border-amber-200 shadow-sm shadow-amber-500/20";
+                cardBgColor = "bg-amber-50/30 border-amber-100/50";
+                statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+              } else if (statusText.includes("SAKIT") || statusText.includes("ERROR")) {
+                badgeColor = "bg-red-100 text-red-800 border-red-200 shadow-sm shadow-red-500/20";
+                cardBgColor = "bg-red-50/30 border-red-100/50";
+                statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>;
+              }
+
+              return (
+                <div className={`p-5 rounded-xl border flex-1 relative z-10 transition-colors duration-300 ${cardBgColor}`}>
+                  {isAiLoading ? (
+                    <div className="flex flex-col gap-3 animate-pulse mt-1">
+                      <div className="h-5 bg-slate-200/70 rounded-md w-28 mb-1"></div>
+                      <div className="h-2.5 bg-slate-200/70 rounded w-full"></div>
+                      <div className="h-2.5 bg-slate-200/70 rounded w-5/6"></div>
+                      <div className="h-2.5 bg-slate-200/70 rounded w-4/6"></div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className="mb-3">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-wide ${badgeColor}`}>
+                          {statusIcon}
+                          {statusText}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-700 leading-relaxed font-medium mt-1">
+                        {analysisText}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
-          {/* Box C: Performa Hari Ini (DENGAN LIVE IOT DATA) */}
+          {/* Box C: Performa Hari Ini */}
           <div className="xl:col-span-3 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden">
             {isIotActive && (
               <div className="absolute -top-6 -right-6 w-16 h-16 bg-emerald-400/20 rounded-full animate-ping pointer-events-none"></div>
             )}
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold text-slate-900">Performa Hari Ini</h3>
+              <h3 className="text-sm font-bold text-slate-900">Live Metrik IoT</h3>
               {isIotActive && <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> LIVE</span>}
             </div>
+
+            {/* 🔥 WARNING MASTITIS VISUAL (JIKA SUHU > 39.2) 🔥 */}
+            {cowData?.liveMetrics?.temperature > 39.2 && (
+              <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-[10px] font-bold text-red-600 animate-pulse">
+                🚨 SAPI DEMAM! Cek Sinkronisasi AI.
+              </div>
+            )}
             
             <div className="space-y-4 flex-1">
               <div className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 -mx-1 rounded transition-colors">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                  <span className="w-6 h-6 rounded bg-blue-50 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">🥛</span> Produksi Susu
+                  <span className="w-6 h-6 rounded bg-blue-50 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">🥛</span> Susu
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-900">{todayMilk.toFixed(1)} L</span>
@@ -737,14 +863,14 @@ export default function SapiPage() {
               </div>
               <div className="border-t border-slate-100"></div>
 
-              {/* LIVE DATA IOT: LANGKAH (Aktivitas) */}
+              {/* LIVE DATA IOT: SUHU */}
               <div className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 -mx-1 rounded transition-colors">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                  <span className="w-6 h-6 rounded bg-indigo-50 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform">🚶</span> Langkah Harian
+                  <span className="w-6 h-6 rounded bg-red-50 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">🌡️</span> Suhu
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold text-slate-900 transition-colors ${isIotActive && isPulsing ? 'text-indigo-600' : ''}`}>
-                    {cowData?.liveMetrics?.steps || 1250}
+                  <span className={`text-sm font-bold transition-colors ${isIotActive && isPulsing ? 'text-red-500' : (cowData?.liveMetrics?.temperature > 39.2 ? 'text-red-600' : 'text-slate-900')}`}>
+                    {cowData?.liveMetrics?.temperature || 38.5} <span className="text-[10px] font-medium text-slate-500">°C</span>
                   </span>
                 </div>
               </div>
@@ -753,24 +879,11 @@ export default function SapiPage() {
               {/* LIVE DATA IOT: RUMINASI */}
               <div className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 -mx-1 rounded transition-colors">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                  <span className="w-6 h-6 rounded bg-blue-50 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">🔄</span> Ruminasi
+                  <span className="w-6 h-6 rounded bg-indigo-50 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform">🔄</span> Ruminasi
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold text-slate-900 transition-colors ${isIotActive && isPulsing ? 'text-blue-600' : ''}`}>
+                  <span className={`text-sm font-bold text-slate-900 transition-colors ${isIotActive && isPulsing ? 'text-indigo-600' : ''}`}>
                     {cowData?.liveMetrics?.rumination || 410} <span className="text-[10px] font-medium text-slate-500">mnt</span>
-                  </span>
-                </div>
-              </div>
-              <div className="border-t border-slate-100"></div>
-
-              {/* LIVE DATA IOT: SUHU */}
-              <div className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-1 -mx-1 rounded transition-colors">
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                  <span className="w-6 h-6 rounded bg-red-50 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">🌡️</span> Suhu Tubuh
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold text-slate-900 transition-colors ${isIotActive && isPulsing ? 'text-red-500' : ''}`}>
-                    {cowData?.liveMetrics?.temperature || 38.5} <span className="text-[10px] font-medium text-slate-500">°C</span>
                   </span>
                 </div>
               </div>

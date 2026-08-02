@@ -6,6 +6,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, doc, query, where, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default function ProduksiSusuPage() {
   const [farmId, setFarmId] = useState<string | null>(null);
@@ -21,6 +22,10 @@ export default function ProduksiSusuPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
   const [searchQuery, setSearchQuery] = useState("");
+
+  // 🔥 STATE UNTUK GEMINI AI 🔥
+  const [aiInsight, setAiInsight] = useState<string>("STATUS: MEMPROSES...\nANALISIS: Mengumpulkan data produksi seluruh peternakan...");
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
 
   // =====================================================================
   // 1. INIT AUTH & FETCH DATA
@@ -138,13 +143,60 @@ export default function ProduksiSusuPage() {
     return { date: dateStr, milk: dayMilk };
   });
 
-  const maxMilkVal = Math.max(...chartDataArray.map(d => d.milk), 100); // Minimal skala 100
-  const yMax = Math.ceil(maxMilkVal * 1.2); // Tambah ruang 20% di atas grafik
-  const mapY = (val: number) => 150 - ((val / yMax) * 90); // 150 tinggi viewBox, 90 tinggi area
+  const maxMilkVal = Math.max(...chartDataArray.map(d => d.milk), 100); 
+  const yMax = Math.ceil(maxMilkVal * 1.2); 
+  const mapY = (val: number) => 150 - ((val / yMax) * 90); 
 
   const xCoords = Array.from({length: 7}, (_, i) => i * (500 / 6));
   const polylinePoints = chartDataArray.map((d, i) => `${xCoords[i]},${mapY(d.milk)}`).join(" ");
   const polygonPoints = `0,150 ${polylinePoints} 500,150`;
+
+  // =====================================================================
+  // 🔥 FUNGSI GEMINI AI (KHUSUS MANAJEMEN PRODUKSI FARM)
+  // =====================================================================
+  const fetchGeminiInsight = async () => {
+    if (isLoading || !process.env.NEXT_PUBLIC_GEMINI_API_KEY) return;
+
+    setIsAiLoading(true);
+    setAiInsight("STATUS: MEMPROSES...\nANALISIS: Mengumpulkan data produksi seluruh peternakan untuk dievaluasi oleh AI...");
+
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
+
+      const prompt = `
+        Kamu adalah sistem AI manajer peternakan sapi perah (AI Moo).
+        Data Produksi Susu Keseluruhan Hari Ini:
+        - Total Produksi: ${totalToday.toFixed(1)} Liter (Trend: ${trendTotal.toFixed(1)}% dari kemarin)
+        - Rata-rata per Sapi: ${avgPerCowToday.toFixed(1)} Liter/ekor
+        - Sapi Mengalami Kenaikan Produksi: ${cowsUpCount} ekor
+        - Sapi Mengalami Penurunan Produksi: ${cowsDownCount} ekor
+        - Top Performer: Sapi ${topCow.name} (${topCow.amount.toFixed(1)} Liter)
+
+        Tugas: Analisis performa produksi susu farm hari ini secara keseluruhan.
+        
+        Berikan jawaban STRICT dengan format ini (TANPA EMOJI, TANPA MARKDOWN BINTANG):
+        STATUS: [Pilih satu yang paling tepat berdasarkan tren: AMAN / PERINGATAN / KRITIS]
+        ANALISIS: [2-3 kalimat rangkuman performa, sorotan tren, dan saran evaluasi manajemen pakan/kesehatan]
+      `;
+
+      const result = await model.generateContent(prompt);
+      setAiInsight(result.response.text());
+    } catch (error) {
+      console.error("Gagal memanggil Gemini API:", error);
+      setAiInsight("STATUS: ERROR\nANALISIS: Maaf, koneksi ke server AI terputus. Silakan sinkronisasi ulang.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Panggil AI otomatis setelah data pertama kali sukses diload
+  useEffect(() => {
+    if (!isLoading && milkRecords.length > 0) {
+      fetchGeminiInsight();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]); 
 
   // =====================================================================
   // 3. HANDLER GENERATE DUMMY (SAPI + SUSU)
@@ -340,52 +392,85 @@ export default function ProduksiSusuPage() {
           </div>
         </div>
 
-        {/* Right: AI Insight */}
-        <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col hover:shadow-md transition-shadow group cursor-pointer overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-200/60 transition-colors duration-500"></div>
+        {/* Right: AI Insight (DI-REWRITE TOTAL MENJADI FORMAT BADGE TANPA EMOJI) */}
+        <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col hover:shadow-md transition-shadow group overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/50 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-purple-200/60 transition-colors duration-500 pointer-events-none"></div>
           
-          <h3 className="text-sm font-bold text-slate-900 mb-5 flex items-center gap-2 relative z-10">
-            <span className="text-emerald-500 text-lg group-hover:scale-110 group-hover:rotate-12 transition-transform">🤖</span> AI Insight
-          </h3>
-          
-          <div className={`p-3 mb-5 rounded-xl border relative z-10 ${trendTotal >= 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'}`}>
-            <p className={`text-xs font-bold leading-relaxed ${trendTotal >= 0 ? 'text-emerald-800' : 'text-amber-800'}`}>
-              Produksi susu hari ini {trendTotal >= 0 ? 'meningkat' : 'turun'} {Math.abs(trendTotal).toFixed(1)}% dibandingkan kemarin.
-            </p>
+          <div className="flex justify-between items-center mb-4 relative z-10">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span className={`text-purple-600 transition-transform ${isAiLoading ? 'animate-spin' : 'group-hover:scale-110 group-hover:rotate-12'}`}>
+                {/* SVG Sparkles (Menggantikan Emoji 🤖/✨) */}
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </span> 
+              Diagnosis Cerdas AI Moo
+            </h3>
+            
+            <button 
+              onClick={fetchGeminiInsight}
+              disabled={isAiLoading}
+              className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1.5 border border-purple-100 disabled:opacity-50"
+            >
+              {/* SVG Refresh (Menggantikan Emoji 🔄) */}
+              <svg className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Sinkronisasi AI
+            </button>
           </div>
+          
+          {/* PARSING HASIL GEMINI MENJADI UI BADGE */}
+          {(() => {
+            const rawStatus = aiInsight.match(/STATUS:\s*(.*)/);
+            const rawAnalysis = aiInsight.match(/ANALISIS:\s*([\s\S]*)/);
+            
+            const statusText = rawStatus ? rawStatus[1].trim().toUpperCase() : (isAiLoading ? "MEMPROSES..." : "MENUNGGU DATA");
+            const analysisText = rawAnalysis ? rawAnalysis[1].trim() : aiInsight;
 
-          <div className="space-y-4 flex-1 relative z-10">
-            <div className="flex items-start gap-3 group/item">
-              <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5 group-hover/item:scale-110 transition-transform shadow-sm">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+            let badgeColor = "bg-slate-100 text-slate-700 border-slate-200 shadow-slate-500/10";
+            let cardBgColor = "bg-slate-50/50 border-slate-100/50";
+            let statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+
+            if (statusText.includes("AMAN")) {
+              badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200 shadow-sm shadow-emerald-500/20";
+              cardBgColor = "bg-emerald-50/30 border-emerald-100/50";
+              statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>;
+            } else if (statusText.includes("PERINGATAN")) {
+              badgeColor = "bg-amber-100 text-amber-800 border-amber-200 shadow-sm shadow-amber-500/20";
+              cardBgColor = "bg-amber-50/30 border-amber-100/50";
+              statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+            } else if (statusText.includes("KRITIS") || statusText.includes("ERROR")) {
+              badgeColor = "bg-red-100 text-red-800 border-red-200 shadow-sm shadow-red-500/20";
+              cardBgColor = "bg-red-50/30 border-red-100/50";
+              statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>;
+            }
+
+            return (
+              <div className={`p-5 rounded-xl border flex-1 relative z-10 transition-colors duration-300 ${cardBgColor}`}>
+                {isAiLoading ? (
+                  <div className="flex flex-col gap-3 animate-pulse mt-1">
+                    <div className="h-5 bg-slate-200/70 rounded-md w-28 mb-1"></div>
+                    <div className="h-2.5 bg-slate-200/70 rounded w-full"></div>
+                    <div className="h-2.5 bg-slate-200/70 rounded w-5/6"></div>
+                    <div className="h-2.5 bg-slate-200/70 rounded w-4/6"></div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="mb-3">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-wide ${badgeColor}`}>
+                        {statusIcon}
+                        {statusText}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-700 leading-relaxed font-medium mt-1 whitespace-pre-wrap">
+                      {analysisText}
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="text-[11px] font-medium text-slate-700 leading-relaxed group-hover/item:text-slate-900 transition-colors">
-                <b className="text-slate-900">{cowsUpCount} ekor sapi</b> menunjukkan peningkatan produksi.
-              </p>
-            </div>
-            
-            <div className="flex items-start gap-3 group/item">
-              <div className="w-6 h-6 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0 mt-0.5 group-hover/item:scale-110 transition-transform shadow-sm">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-              </div>
-              <p className="text-[11px] font-medium text-slate-700 leading-relaxed group-hover/item:text-slate-900 transition-colors">
-                <b className="text-slate-900">{cowsDownCount} ekor sapi</b> mengalami penurunan produksi. {cowsDownCount > 0 ? "Periksa pakan." : ""}
-              </p>
-            </div>
-            
-            <div className="flex items-start gap-3 group/item">
-              <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 mt-0.5 group-hover/item:scale-110 transition-transform shadow-sm">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-              </div>
-              <p className="text-[11px] font-medium text-slate-700 leading-relaxed group-hover/item:text-slate-900 transition-colors">
-                <b className="text-slate-900">Top Performer:</b> Sapi {topCow.name} menyumbang {topCow.amount.toFixed(1)}L hari ini.
-              </p>
-            </div>
-          </div>
-          
-          <button className="text-xs font-bold text-emerald-600 hover:text-emerald-700 mt-4 text-left inline-block relative z-10 group-hover:underline">
-            Lihat rekomendasi lengkap →
-          </button>
+            );
+          })()}
         </div>
 
       </div>
