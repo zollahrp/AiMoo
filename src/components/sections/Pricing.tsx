@@ -13,7 +13,7 @@ export default function Pricing() {
       id: "trace",
       name: "AiMoo Trace",
       description: "Monitoring esensial untuk visibilitas data peternakan dasar.",
-      price: "15.000",
+      price: "99.000",
       unit: "/ ekor / bln",
       isPopular: false,
       features: [
@@ -28,7 +28,7 @@ export default function Pricing() {
       id: "pulse",
       name: "AiMoo Pulse",
       description: "Analisis cerdas dengan peringatan AI untuk efisiensi maksimal.",
-      price: "25.000",
+      price: "1.500.000",
       unit: "/ ekor / bln",
       isPopular: true, 
       features: [
