@@ -6,6 +6,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, deleteDoc, updateDoc, doc, query, where, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const CHART_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#fbbf24", "#f97316", "#94a3b8"];
 
@@ -68,6 +69,10 @@ export default function KeuanganPage() {
     targetIncome: 0,
     targetProfit: 0
   });
+
+  // 🔥 STATE UNTUK GEMINI AI 🔥
+  const [aiInsight, setAiInsight] = useState<string>("STATUS: MEMPROSES...\nANALISIS: Mengumpulkan data arus kas, margin laba, dan efisiensi pengeluaran untuk dievaluasi oleh AI...");
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
 
   const incomeCategories = ["Penjualan Susu", "Penjualan Pedet", "Penjualan Sapi Afkir", "Lainnya"];
   const expenseCategories = ["Pakan", "Tenaga Kerja", "Obat & Kesehatan", "Reproduksi", "Listrik & Air", "Pemeliharaan", "Lainnya"];
@@ -269,6 +274,75 @@ export default function KeuanganPage() {
   };
 
   // =====================================================================
+  // 🔥 FUNGSI GEMINI AI (ANALISIS KEUANGAN DENGAN FALLBACK)
+  // =====================================================================
+  const fetchGeminiInsight = async () => {
+    if (isLoadingData) return;
+    setIsAiLoading(true);
+    setAiInsight("STATUS: MEMPROSES...\nANALISIS: Mengevaluasi margin profit, ROI, dan efisiensi pengeluaran bulan ini...");
+
+    // 🔥 FIX: Fallback kalau API Key kosong (Mode Demo AI)
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+      setTimeout(() => {
+        let status = "SEHAT";
+        let text = `(Mode Demo AI) Arus kas peternakan sangat baik dengan Net Profit Margin ${marginLaba}%. Pengeluaran terbesar pada ${sortedExpenses[0]?.category || "operasional"} (${sortedExpenses[0]?.percentage.toFixed(1) || 0}%). Lanjutkan performa ini!`;
+        
+        if (netProfit < 0) {
+          status = "DEFISIT";
+          text = `(Mode Demo AI) PERINGATAN: Peternakan mengalami kerugian Rp ${formatShort(Math.abs(netProfit))}. Evaluasi segera biaya ${sortedExpenses[0]?.category || "operasional"} yang memakan mayoritas anggaran.`;
+        } else if (Number(marginLaba) < 15) {
+          status = "EVALUASI MARGIN";
+          text = `(Mode Demo AI) Laba bersih positif, namun Margin Laba hanya ${marginLaba}% (Di bawah standar ideal 25%). Kurangi pemborosan pada sektor ${sortedExpenses[1]?.category || "lainnya"}.`;
+        }
+
+        setAiInsight(`STATUS: ${status}\nANALISIS: ${text}`);
+        setIsAiLoading(false);
+      }, 2000);
+      return;
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const prompt = `
+        Kamu adalah AI Ahli Keuangan Peternakan Sapi Perah (AI Moo).
+        Data Keuangan Keseluruhan Farm:
+        - Total Pendapatan: Rp ${totalIncome.toLocaleString('id-ID')}
+        - Total Pengeluaran: Rp ${totalExpense.toLocaleString('id-ID')}
+        - Laba Bersih (Net Profit): Rp ${netProfit.toLocaleString('id-ID')}
+        - Net Profit Margin: ${marginLaba}%
+        - ROI (Return on Investment): ${roi}%
+        
+        Rincian Pengeluaran Terbesar:
+        ${sortedExpenses.slice(0,3).map(e => `- ${e.category}: ${e.percentage.toFixed(1)}% (Rp ${e.amount.toLocaleString('id-ID')})`).join("\n")}
+
+        Tugas: Analisis kesehatan arus kas dan efisiensi biaya peternakan ini.
+        *Catatan industri: Profit margin sehat sapi perah adalah >25%. Pakan normalnya 60-70% biaya.
+        
+        Berikan jawaban STRICT dengan format ini (TANPA EMOJI, TANPA MARKDOWN):
+        STATUS: [Pilih: SEHAT / EVALUASI MARGIN / DEFISIT]
+        ANALISIS: [2-3 kalimat rangkuman kesehatan finansial, evaluasi biaya operasional yang membengkak, dan saran efisiensi]
+      `;
+
+      const result = await model.generateContent(prompt);
+      setAiInsight(result.response.text());
+    } catch (error) {
+      console.error("Gagal memanggil Gemini API:", error);
+      setAiInsight("STATUS: ERROR\nANALISIS: Maaf, koneksi ke server AI terputus. Silakan sinkronisasi ulang.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoadingData && transactions.length > 0) {
+      fetchGeminiInsight();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingData]);
+
+  // =====================================================================
   // 🔥 FUNGSI HANDLER CRUD & KATEGORI DINAMIS 🔥
   // =====================================================================
   
@@ -306,7 +380,6 @@ export default function KeuanganPage() {
     }
   };
 
-  // 🔥 TAMBAHAN BARU: Tambah & Hapus Kategori Firebase
   const handleAddCustomCategory = async () => {
     if (!newCategoryName.trim() || !farmId) return;
     const key = formData.type === "Income" ? "customIncome" : "customExpense";
@@ -325,9 +398,7 @@ export default function KeuanganPage() {
       setNewCategoryName("");
       setIsAddingCategory(false);
       setIsCategoryDropdownOpen(false);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const handleDeleteCustomCategory = async (catToDelete: string) => {
@@ -339,13 +410,10 @@ export default function KeuanganPage() {
     try {
       await setDoc(doc(db, "farms", farmId, "settings", "financial"), { [key]: updatedList }, { merge: true });
       setFinancialSettings((prev: any) => ({...prev, [key]: updatedList}));
-      
       if (formData.category === catToDelete) {
          setFormData(prev => ({...prev, category: formData.type === "Income" ? incomeCategories[0] : expenseCategories[0]}));
       }
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const handleSaveTransaction = async (e: React.FormEvent) => {
@@ -366,16 +434,12 @@ export default function KeuanganPage() {
       setEditId(null);
     } catch (err: any) {
       Swal.fire("Error", err.message, "error");
-    } finally {
-      setIsSubmitting(false);
-    }
+    } finally { setIsSubmitting(false); }
   };
 
   const handleDeleteTransaction = async (id: string) => {
     const result = await Swal.fire({ title: "Hapus Transaksi?", icon: "warning", showCancelButton: true, confirmButtonColor: "#ef4444", confirmButtonText: "Ya, Hapus!" });
-    if (result.isConfirmed) {
-      await deleteDoc(doc(db, "financial_transactions", id));
-    }
+    if (result.isConfirmed) { await deleteDoc(doc(db, "financial_transactions", id)); }
   };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -386,11 +450,7 @@ export default function KeuanganPage() {
       await setDoc(doc(db, "farms", farmId, "settings", "financial"), { saldoAwal: Number(settingsForm.saldoAwal), targetIncome: Number(settingsForm.targetIncome), targetProfit: Number(settingsForm.targetProfit), updatedAt: serverTimestamp() }, { merge: true }); 
       setIsSettingsModalOpen(false);
       Swal.fire("Tersimpan!", "Pengaturan keuangan berhasil diperbarui.", "success");
-    } catch (err: any) {
-      Swal.fire("Error", err.message, "error");
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (err: any) { Swal.fire("Error", err.message, "error"); } finally { setIsSubmitting(false); }
   };
 
   const handleGenerateSmartTarget = () => {
@@ -421,11 +481,7 @@ export default function KeuanganPage() {
         await addDoc(collection(db, "financial_transactions"), { farmId, transactionDate: item.date, type: item.type, category: item.category, amount: item.amount, description: item.desc, recordedBy: userUid, createdAt: serverTimestamp() });
       }
       Swal.fire("Sukses", "Data Dummy Berhasil Dimasukkan!", "success");
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (e) { console.error(e); } finally { setIsSubmitting(false); }
   };
 
   // =====================================================================
@@ -434,9 +490,7 @@ export default function KeuanganPage() {
 
   const requestSort = (key: string) => {
     let direction: "asc" | "desc" = "asc";
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") { direction = "desc"; }
     setSortConfig({ key, direction });
     setCurrentPage(1); 
   };
@@ -447,9 +501,7 @@ export default function KeuanganPage() {
   };
 
   let processedTransactions = [...transactions];
-  if (filterType !== "All") {
-    processedTransactions = processedTransactions.filter(trx => trx.type === filterType);
-  }
+  if (filterType !== "All") { processedTransactions = processedTransactions.filter(trx => trx.type === filterType); }
 
   if (sortConfig !== null) {
     processedTransactions.sort((a, b) => {
@@ -565,9 +617,7 @@ export default function KeuanganPage() {
 
                 {isCategoryDropdownOpen && (
                   <>
-                    {/* Overlay Transparan buat nutup dropdown kalau diklik di luar */}
                     <div className="fixed inset-0 z-40" onClick={() => setIsCategoryDropdownOpen(false)}></div>
-                    
                     <div className="absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                       {isAddingCategory ? (
                         <div className="p-3 bg-emerald-50/30">
@@ -588,7 +638,6 @@ export default function KeuanganPage() {
                         <ul className="max-h-48 overflow-y-auto py-1">
                           {(formData.type === "Income" ? [...incomeCategories, ...(financialSettings.customIncome || [])] : [...expenseCategories, ...(financialSettings.customExpense || [])]).map(cat => {
                             const isCustom = formData.type === "Income" ? (financialSettings.customIncome || []).includes(cat) : (financialSettings.customExpense || []).includes(cat);
-                            
                             return (
                               <li key={cat} className="flex justify-between items-center px-4 py-2 hover:bg-slate-50 transition-colors group">
                                 <span 
@@ -1002,37 +1051,78 @@ export default function KeuanganPage() {
           <button onClick={() => { setSettingsForm(financialSettings); setIsSettingsModalOpen(true); }} className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 mt-6 text-left cursor-pointer hover:underline">Atur Pengaturan & Target →</button>
         </div>
 
-        {/* AI Insight */}
+        {/* 🔥 AI Insight Keuangan 🔥 */}
         <div className="lg:col-span-3 bg-emerald-50/50 rounded-2xl border border-emerald-100 shadow-sm p-6 flex flex-col relative overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-300/40 transition-colors duration-500"></div>
           
-          <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2 relative z-10">
-            <span className="text-emerald-500 text-lg group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">🤖</span> AI Insight
-          </h3>
+          <div className="flex justify-between items-center mb-4 relative z-10">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span className={`text-emerald-500 transition-transform ${isAiLoading ? 'animate-spin' : 'group-hover:scale-110 group-hover:rotate-12'}`}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </span> 
+              Diagnosis AI Moo
+            </h3>
+            
+            <button 
+              onClick={fetchGeminiInsight}
+              disabled={isAiLoading}
+              className="px-3 py-1.5 bg-white hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-bold transition-colors cursor-pointer flex items-center gap-1.5 border border-emerald-200 disabled:opacity-50"
+            >
+              <svg className={`w-3.5 h-3.5 ${isAiLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Sync
+            </button>
+          </div>
           
-          <div className="bg-white/60 border border-emerald-100/50 rounded-xl p-3 mb-5 relative z-10">
-            <p className="text-[11px] font-medium text-slate-700 leading-relaxed">
-              Kesehatan finansial farm Anda berada di level <b className="text-slate-900">{netProfit > 0 ? "Optimal" : "Perlu Perbaikan"}</b>.
-            </p>
-          </div>
+          {(() => {
+            const rawStatus = aiInsight.match(/STATUS:\s*(.*)/);
+            const rawAnalysis = aiInsight.match(/ANALISIS:\s*([\s\S]*)/);
+            
+            const statusText = rawStatus ? rawStatus[1].trim().toUpperCase() : (isAiLoading ? "MEMPROSES..." : "MENUNGGU DATA");
+            const analysisText = rawAnalysis ? rawAnalysis[1].trim() : aiInsight;
 
-          <div className="flex-1 relative z-10">
-            <h4 className="text-xs font-bold text-slate-800 mb-3">Rekomendasi</h4>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 group/item">
-                <div className="bg-white p-1.5 rounded shadow-sm border border-slate-100 shrink-0 group-hover/item:border-purple-200 group-hover/item:shadow transition-all">
-                  <svg className="w-4 h-4 text-purple-500 group-hover/item:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                </div>
-                <p className="text-[10px] font-medium text-slate-700 leading-relaxed group-hover/item:text-slate-900 transition-colors">Biaya pakan menyumbang {sortedExpenses[0]?.percentage.toFixed(1) || 0}% dari total biaya. Cek formulasi pakan.</p>
+            let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
+            let statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+
+            if (statusText.includes("SEHAT")) {
+              badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+              statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>;
+            } else if (statusText.includes("EVALUASI")) {
+              badgeColor = "bg-amber-100 text-amber-800 border-amber-200";
+              statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+            } else if (statusText.includes("DEFISIT") || statusText.includes("ERROR")) {
+              badgeColor = "bg-red-100 text-red-800 border-red-200";
+              statusIcon = <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>;
+            }
+
+            return (
+              <div className="flex-1 relative z-10 flex flex-col h-full bg-white/60 p-4 rounded-xl border border-emerald-100/50">
+                {isAiLoading ? (
+                  <div className="flex flex-col gap-3 animate-pulse">
+                    <div className="h-5 bg-slate-200/70 rounded-md w-28 mb-1"></div>
+                    <div className="h-2.5 bg-slate-200/70 rounded w-full"></div>
+                    <div className="h-2.5 bg-slate-200/70 rounded w-5/6"></div>
+                    <div className="h-2.5 bg-slate-200/70 rounded w-4/6"></div>
+                  </div>
+                ) : (
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="mb-3">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-wide ${badgeColor}`}>
+                        {statusIcon}
+                        {statusText}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-700 leading-relaxed font-medium mt-1 whitespace-pre-wrap">
+                      {analysisText}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex items-start gap-3 group/item">
-                <div className="bg-white p-1.5 rounded shadow-sm border border-slate-100 shrink-0 group-hover/item:border-emerald-200 group-hover/item:shadow transition-all">
-                  <svg className="w-4 h-4 text-emerald-500 group-hover/item:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <p className="text-[10px] font-medium text-slate-700 leading-relaxed group-hover/item:text-slate-900 transition-colors">Arus kas Anda {netProfit >= 0 ? "positif" : "negatif"}. Evaluasi neraca keuangan bulan depan.</p>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
       </div>
