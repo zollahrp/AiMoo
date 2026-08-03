@@ -303,7 +303,7 @@ export default function KeuanganPage() {
 
     try {
       const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
       const prompt = `
         Kamu adalah AI Ahli Keuangan Peternakan Sapi Perah (AI Moo).
