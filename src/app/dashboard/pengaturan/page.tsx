@@ -20,7 +20,7 @@ export default function PengaturanPage() {
   // State Form UMUM
   const [farmForm, setFarmForm] = useState({ name: "", address: "", capacity: "" });
   const [prefForm, setPrefForm] = useState({ language: "Bahasa Indonesia", weightUnit: "Kilogram (kg)" });
-  const [profileForm, setProfileForm] = useState({ fullName: "", email: "", photoUrl: "/image/Logo AiMoo.png" });
+  const [profileForm, setProfileForm] = useState({ fullName: "", email: "", photoUrl: "/image/Logo KaMoo.png" });
 
   // State Form PENGGUNA (Members)
   const [members, setMembers] = useState<any[]>([]);
@@ -42,7 +42,7 @@ export default function PengaturanPage() {
           setProfileForm({
             fullName: userData.fullName || "",
             email: user.email || userData.email || "",
-            photoUrl: userData.photoUrl || "/image/Logo AiMoo.png"
+            photoUrl: userData.photoUrl || "/image/Logo KaMoo.png"
           });
           const uFarmId = Object.keys(userData.farmRoles || {})[0];
           setFarmId(uFarmId);
@@ -193,8 +193,8 @@ export default function PengaturanPage() {
     if (!farmId) return;
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, "farms", farmId, "members"), { name: "Budi Santoso", email: "budi.staff@aimoo.com", role: "Farm Manager", status: "Aktif", createdAt: serverTimestamp() });
-      await addDoc(collection(db, "farms", farmId, "members"), { name: "Siti Aminah", email: "siti.kandang@aimoo.com", role: "Staff Kandang", status: "Aktif", createdAt: serverTimestamp() });
+      await addDoc(collection(db, "farms", farmId, "members"), { name: "Budi Santoso", email: "budi.staff@kamoo.com", role: "Farm Manager", status: "Aktif", createdAt: serverTimestamp() });
+      await addDoc(collection(db, "farms", farmId, "members"), { name: "Siti Aminah", email: "siti.kandang@kamoo.com", role: "Staff Kandang", status: "Aktif", createdAt: serverTimestamp() });
       Swal.fire("Sukses!", "Data karyawan dummy berhasil dibuat.", "success");
     } catch (e: any) { console.error(e); } finally { setIsSubmitting(false); }
   };
@@ -223,7 +223,7 @@ export default function PengaturanPage() {
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1.5">Email / Username</label>
-                <input type="email" required value={memberForm.email} onChange={(e) => setMemberForm({...memberForm, email: e.target.value})} placeholder="budi@aimoo.com" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-text" />
+                <input type="email" required value={memberForm.email} onChange={(e) => setMemberForm({...memberForm, email: e.target.value})} placeholder="budi@kamoo.com" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-text" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -350,7 +350,7 @@ export default function PengaturanPage() {
             <div className="flex flex-col sm:flex-row gap-5 flex-1">
               <div className="flex flex-col items-center gap-3 shrink-0">
                 <div className="w-20 h-20 rounded-full bg-slate-100 overflow-hidden border border-slate-200 hover:scale-105 transition-transform duration-300 relative group cursor-pointer">
-                  <Image src={profileForm.photoUrl || "/image/Logo AiMoo.png"} alt="Profile" width={80} height={80} className="w-full h-full object-cover" />
+                  <Image src={profileForm.photoUrl || "/image/Logo KaMoo.png"} alt="Profile" width={80} height={80} className="w-full h-full object-cover" />
                   <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                     <span className="text-white text-[10px] font-bold text-center leading-tight">Ubah<br/>Foto</span>
                     <input type="file" accept="image/*" onChange={handleProfileImageUpload} className="hidden" />
@@ -416,7 +416,7 @@ export default function PengaturanPage() {
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                        <Image src={profileForm.photoUrl || "/image/Logo AiMoo.png"} alt="Profile" width={32} height={32} className="object-cover w-full h-full"/>
+                        <Image src={profileForm.photoUrl || "/image/Logo KaMoo.png"} alt="Profile" width={32} height={32} className="object-cover w-full h-full"/>
                       </div>
                       <span className="font-bold text-slate-900">{profileForm.fullName} (Anda)</span>
                     </div>
@@ -517,7 +517,7 @@ export default function PengaturanPage() {
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-2xl shadow-sm">📡</div>
               <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-[10px] font-bold border border-green-200">Terhubung</span>
             </div>
-            <h3 className="font-bold text-slate-900">AiMoo Smart Ear Tag</h3>
+            <h3 className="font-bold text-slate-900">KaMoo Smart Collar (Kalung Pintar)</h3>
             <p className="text-xs text-slate-500 mt-1 mb-4">Integrasi langsung ke sistem pelacakan suhu, langkah, dan ruminasi.</p>
             <button className="mt-auto px-4 py-2 bg-slate-50 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer">Konfigurasi</button>
           </div>

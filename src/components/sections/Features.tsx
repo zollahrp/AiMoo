@@ -10,8 +10,8 @@ export default function Features() {
   const features = [
     {
       id: 1,
-      title: "IoT Ear Tag Sensor",
-      description: "Sensor pintar yang dipasang di telinga sapi mengumpulkan data suhu, aktivitas, dan kondisi secara real-time.",
+      title: "IoT Smart Collar Sensor",
+      description: "Sensor pintar yang dipasang di kalung leher sapi mengumpulkan data suhu, aktivitas, dan kondisi secara real-time.",
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -33,7 +33,7 @@ export default function Features() {
     {
       id: 3,
       title: "Data di Cloud",
-      description: "Semua data tersimpan aman di cloud dan dapat diakses kapan saja melalui dashboard web AiMoo.",
+      description: "Semua data tersimpan aman di cloud dan dapat diakses kapan saja melalui dashboard web KaMoo.",
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
@@ -91,7 +91,7 @@ export default function Features() {
             <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
-            Fitur Unggulan AiMoo
+            Fitur Unggulan KaMoo
           </div>
           
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
@@ -101,7 +101,7 @@ export default function Features() {
             </span>
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl font-medium">
-            Tinggalkan cara manual. AiMoo menghadirkan ekosistem digital lengkap untuk memantau, menganalisis, dan meningkatkan produktivitas sapi Anda.
+            Tinggalkan cara manual. KaMoo menghadirkan ekosistem digital lengkap untuk memantau, menganalisis, dan meningkatkan produktivitas sapi Anda.
           </p>
         </div>
 

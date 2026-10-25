@@ -13,7 +13,7 @@ const inter = Inter({
 
 // (Opsional) Sekalian kita rapihin metadata buat tab browser lu biar pro!
 export const metadata: Metadata = {
-  title: "AiMoo | Smart Livestock Monitoring",
+  title: "KaMoo | Smart Livestock Monitoring",
   description: "Platform berbasis AI dan IoT untuk memantau kesehatan dan produktivitas sapi perah secara real-time.",
 };
 

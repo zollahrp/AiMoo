@@ -527,7 +527,7 @@ export default function KesehatanPage() {
                       <tr key={cow.cowId} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
                         <td className="py-3 px-2 font-semibold">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded overflow-hidden bg-slate-100 shrink-0"><Image src={cow.photoUrl || "/image/Logo AiMoo.png"} alt="Cow" width={32} height={32} className="object-cover w-full h-full group-hover:scale-110 transition-transform"/></div>
+                            <div className="w-8 h-8 rounded overflow-hidden bg-slate-100 shrink-0"><Image src={cow.photoUrl || "/image/Logo KaMoo.png"} alt="Cow" width={32} height={32} className="object-cover w-full h-full group-hover:scale-110 transition-transform"/></div>
                             <div>
                               <p className="font-bold text-slate-900">#{cow.tagNumber}</p>
                               <p className="text-[10px] text-slate-500 font-medium">{cow.name}</p>

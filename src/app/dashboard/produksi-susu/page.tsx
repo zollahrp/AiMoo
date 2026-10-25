@@ -117,7 +117,7 @@ export default function ProduksiSusuPage() {
       changeText: `${change >= 0 ? "↑" : "↓"} ${Math.abs(change).toFixed(1)}%`,
       changeType: changeType,
       avg: cowAvg.toFixed(1),
-      img: cow.photoUrl || "/image/Logo AiMoo.png"
+      img: cow.photoUrl || "/image/Logo KaMoo.png"
     };
   });
 

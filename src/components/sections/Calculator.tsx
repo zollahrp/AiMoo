@@ -53,7 +53,7 @@ export default function Calculator() {
 
   // Kalkulasi Bisnis
   const currentMonthlyRevenue = cows * milkPerDay * milkPrice * 30;
-  const productivityIncrease = 0.18; // 18% AiMoo Boost
+  const productivityIncrease = 0.18; // 18% KaMoo Boost
   const extraRevenue = currentMonthlyRevenue * productivityIncrease;
   const totalProjectedRevenue = currentMonthlyRevenue + extraRevenue;
 
@@ -103,7 +103,7 @@ export default function Calculator() {
             Proyeksikan <span className="text-emerald-600">Pertumbuhan Profit</span> Anda
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl font-medium">
-            Sesuaikan metrik di bawah ini untuk melihat potensi peningkatan pendapatan peternakan Anda hingga <b className="text-slate-900">18%</b> per bulan bersama AiMoo.
+            Sesuaikan metrik di bawah ini untuk melihat potensi peningkatan pendapatan peternakan Anda hingga <b className="text-slate-900">18%</b> per bulan bersama KaMoo.
           </p>
         </div>
 

@@ -78,7 +78,7 @@ export default function About() {
             Profil Eksekutif
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-5">
-            Kepemimpinan di <span className="text-emerald-600">AiMoo</span>
+            Kepemimpinan di <span className="text-emerald-600">KaMoo</span>
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl font-medium">
             Kombinasi keahlian Teknologi Perangkat Lunak, Manajemen Ternak, dan Akuntansi untuk membangun masa depan peternakan presisi di Indonesia.

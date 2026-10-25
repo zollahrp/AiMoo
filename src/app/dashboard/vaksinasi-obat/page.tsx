@@ -311,7 +311,7 @@ export default function VaksinasiObatPage() {
                 return (
                   <div key={cow.cowId} className="flex items-center gap-3 bg-white hover:bg-slate-50 transition-colors group cursor-pointer border-b border-slate-50 pb-3">
                     <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-slate-100 shadow-sm group-hover:scale-105 transition-transform">
-                      <Image src={cow.photoUrl || "/image/Logo AiMoo.png"} alt="Cow" width={40} height={40} className="w-full h-full object-cover" />
+                      <Image src={cow.photoUrl || "/image/Logo KaMoo.png"} alt="Cow" width={40} height={40} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs font-bold text-slate-900">#{cow.tagNumber} - {cow.name}</p>

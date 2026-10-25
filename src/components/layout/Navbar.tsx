@@ -91,8 +91,8 @@ export default function Navbar() {
             <Link href="#hero" onClick={(e) => handleScrollTo(e, 'hero')} className="flex items-center gap-2">
               {/* 2. PAKAI LOGO GAMBAR SEKARANG */}
               <Image 
-                src="/image/Logo AiMoo.png" // Path dari folder public
-                alt="Logo AiMoo" 
+                src="/image/Logo KaMoo.png" // Path dari folder public
+                alt="Logo KaMoo" 
                 width={90} 
                 height={42} 
                 className="object-contain" // Biar gambarnya gak gepeng

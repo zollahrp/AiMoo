@@ -30,9 +30,9 @@ export default function Footer() {
               onClick={(e) => handleScrollTo(e, 'hero')} 
               className="flex items-center gap-2 mb-6 transition-transform hover:scale-105 inline-block"
             >
-              {/* Logo AiMoo Text */}
+              {/* Logo KaMoo Text */}
               <span className="text-3xl font-black text-white tracking-tighter">
-                Ai<span className="text-emerald-500">Moo</span>
+                Ka<span className="text-emerald-500">Moo</span>
               </span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm font-medium">
@@ -87,7 +87,7 @@ export default function Footer() {
         {/* BOTTOM SECTION: Copyright & Tagline Tim */}
         <div className="border-t border-slate-800/80 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-sm text-slate-500 font-medium text-center md:text-left">
-            &copy; {new Date().getFullYear()} AiMoo - Institut Pertanian Bogor. All rights reserved.
+            &copy; {new Date().getFullYear()} KaMoo - Institut Pertanian Bogor. All rights reserved.
           </p>
           
           {/* Tagline Tim */}

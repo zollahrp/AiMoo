@@ -349,7 +349,7 @@ export default function ReproduksiPage() {
                 {sapiPerhatian.map(cow => (
                   <div key={cow.cowId} className="flex items-center gap-3 p-3 bg-white border border-slate-100 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors group">
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-100 shadow-sm">
-                      <Image src={cow.photoUrl || "/image/Logo AiMoo.png"} alt="Cow" width={48} height={48} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                      <Image src={cow.photoUrl || "/image/Logo KaMoo.png"} alt="Cow" width={48} height={48} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-0.5">
@@ -554,7 +554,7 @@ export default function ReproduksiPage() {
                   sapiMelahirkan.map(cow => (
                     <div key={cow.cowId} className="flex items-center gap-3 p-2 -mx-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group">
                       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-slate-100 shadow-sm group-hover:shadow">
-                        <Image src={cow.photoUrl || "/image/Logo AiMoo.png"} alt="Cow" width={40} height={40} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                        <Image src={cow.photoUrl || "/image/Logo KaMoo.png"} alt="Cow" width={40} height={40} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                       </div>
                       <div className="flex-1">
                         <p className="text-xs font-bold text-slate-900">#{cow.tagNumber} - {cow.name}</p>

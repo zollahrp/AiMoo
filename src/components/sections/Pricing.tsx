@@ -11,7 +11,7 @@ export default function Pricing() {
   const tiers = [
     {
       id: "trace",
-      name: "AiMoo Trace",
+      name: "KaMoo Trace",
       description: "Monitoring esensial untuk visibilitas data peternakan dasar.",
       price: "99.000",
       unit: "/ ekor / bln",
@@ -26,13 +26,13 @@ export default function Pricing() {
     },
     {
       id: "pulse",
-      name: "AiMoo Pulse",
+      name: "KaMoo Pulse",
       description: "Analisis cerdas dengan peringatan AI untuk efisiensi maksimal.",
       price: "1.500.000",
       unit: "/ ekor / bln",
       isPopular: true, 
       features: [
-        "Semua fitur di AiMoo Trace",
+        "Semua fitur di KaMoo Trace",
         "Deteksi Dini Birahi & Mastitis (AI)",
         "Notifikasi Real-time (WhatsApp/Push)",
         "Penyimpanan Data 1 Tahun",
@@ -42,13 +42,13 @@ export default function Pricing() {
     },
     {
       id: "prime",
-      name: "AiMoo Prime",
+      name: "KaMoo Prime",
       description: "Solusi enterprise terintegrasi untuk GKSI dan skala besar.",
       price: "Kustom",
       unit: "Hubungi Sales",
       isPopular: false,
       features: [
-        "Semua fitur di AiMoo Pulse",
+        "Semua fitur di KaMoo Pulse",
         "Integrasi API & Sistem Eksternal",
         "Manajemen Multi-Peternakan (GKSI)",
         "Penyimpanan Data Unlimited",
@@ -97,7 +97,7 @@ export default function Pricing() {
             <span className="text-emerald-600">Skala Peternakan Apapun</span>
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl font-medium">
-            Pilih paket AiMoo yang sesuai dengan kebutuhan Anda. Bayar sesuai jumlah sapi yang dipantau, tanpa biaya tersembunyi.
+            Pilih paket KaMoo yang sesuai dengan kebutuhan Anda. Bayar sesuai jumlah sapi yang dipantau, tanpa biaya tersembunyi.
           </p>
         </div>
 

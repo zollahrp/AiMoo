@@ -96,7 +96,7 @@ export default function Hero() {
                 shouldAnimate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
-              AiMoo membantu peternak memantau kondisi sapi lebih mudah, cepat, dan akurat dengan teknologi AI & IoT kelas *Enterprise*.
+              KaMoo membantu peternak memantau kondisi sapi lebih mudah, cepat, dan akurat dengan teknologi AI & IoT kelas *Enterprise*.
             </p>
 
             {/* List Fitur */}

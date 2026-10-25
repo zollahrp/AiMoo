@@ -20,7 +20,7 @@ export default function Sidebar() {
   const [userData, setUserData] = useState({
     fullName: "Memuat...",
     role: "Memuat...",
-    photoUrl: "/image/Logo AiMoo.png"
+    photoUrl: "/image/Logo KaMoo.png"
   });
 
   const menuItems = [
@@ -57,7 +57,7 @@ export default function Sidebar() {
             setUserData({
               fullName: data.fullName || user.email || "Pengguna",
               role: roleName,
-              photoUrl: data.photoUrl || "/image/Logo AiMoo.png"
+              photoUrl: data.photoUrl || "/image/Logo KaMoo.png"
             });
           }
         } catch (error) {
@@ -69,7 +69,7 @@ export default function Sidebar() {
         setUserData({
           fullName: "Tamu",
           role: "Silakan Login",
-          photoUrl: "/image/Logo AiMoo.png"
+          photoUrl: "/image/Logo KaMoo.png"
         });
       }
     });
@@ -83,7 +83,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center justify-center h-20 border-b border-slate-100 shrink-0">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/image/Logo AiMoo.png" alt="AiMoo Logo" width={110} height={35} className="object-contain" />
+          <Image src="/image/Logo KaMoo.png" alt="KaMoo Logo" width={110} height={35} className="object-contain" />
         </Link>
       </div>
 

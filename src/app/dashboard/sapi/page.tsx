@@ -484,7 +484,7 @@ export default function SapiPage() {
             <form onSubmit={handleSaveCow} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
               <div className="flex flex-col items-center justify-center mb-4">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-emerald-500 bg-slate-50 mb-3 relative group cursor-pointer">
-                  <img src={cowForm.photoUrl || "/image/Logo AiMoo.png"} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={cowForm.photoUrl || "/image/Logo KaMoo.png"} alt="Preview" className="w-full h-full object-cover" />
                   <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                     <span className="text-white text-xs font-bold">Ubah</span>
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -495,7 +495,7 @@ export default function SapiPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1.5">ID Telinga (Tag)</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1.5">ID Kalung (Tag)</label>
                   <input type="text" value={cowForm.tagNumber} onChange={(e) => setCowForm({...cowForm, tagNumber: e.target.value})} required className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 cursor-text" />
                 </div>
                 <div>
@@ -664,7 +664,7 @@ export default function SapiPage() {
             {isIotActive ? (
               <><span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span> Matikan Sensor IoT</>
             ) : (
-              <>📡 Aktifkan Sensor Ear Tag</>
+              <>📡 Aktifkan Sensor Kalung</>
             )}
           </button>
 
@@ -738,7 +738,7 @@ export default function SapiPage() {
           {/* Box A: Info Sapi */}
           <div className="xl:col-span-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-shadow">
             <div className="w-full sm:w-32 h-32 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-50">
-              <img src={cowData?.photoUrl || "/image/Logo AiMoo.png"} alt="Foto Sapi" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+              <img src={cowData?.photoUrl || "/image/Logo KaMoo.png"} alt="Foto Sapi" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
               <div className="text-slate-500 font-medium">ID Sapi</div><div className="font-bold text-slate-900">{cowData?.tagNumber}</div>
