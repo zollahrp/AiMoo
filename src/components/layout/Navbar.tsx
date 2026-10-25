@@ -15,8 +15,8 @@ export default function Navbar() {
     { name: "Beranda", id: "hero" },
     { name: "Fitur", id: "fitur" },
     { name: "Kalkulator ROI", id: "kalkulator" },
-    { name: "Harga", id: "harga" },
-    { name: "Tentang Kami", id: "tentang-kami" },
+    // { name: "Harga", id: "harga" },
+    // { name: "Tentang Kami", id: "tentang-kami" },
   ];
 
   // Efek Scroll (Blur Navbar & Scrollspy)

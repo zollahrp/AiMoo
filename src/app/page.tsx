@@ -5,8 +5,8 @@ import Hero from "@/components/sections/Hero";
 import Features from "@/components/sections/Features";
 import Stats from "@/components/sections/Stats";
 import Calculator from "@/components/sections/Calculator";
-import Pricing from "@/components/sections/Pricing";
-import About from "@/components/sections/About"; 
+// import Pricing from "@/components/sections/Pricing";
+// import About from "@/components/sections/About"; 
 
 export default function Home() {
   return (
@@ -18,8 +18,8 @@ export default function Home() {
       <Features />
       <Stats />
       <Calculator />
-      <Pricing />
-      <About /> 
+      {/* <Pricing /> */}
+      {/* <About /> */} 
 
       <Footer />
     </main>

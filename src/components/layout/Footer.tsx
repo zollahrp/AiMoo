@@ -56,7 +56,7 @@ export default function Footer() {
             <ul className="space-y-4 text-sm font-medium text-slate-400">
               <li><Link href="#fitur" onClick={(e) => handleScrollTo(e, 'fitur')} className="hover:text-emerald-400 transition-colors">Fitur Unggulan</Link></li>
               <li><Link href="#kalkulator" onClick={(e) => handleScrollTo(e, 'kalkulator')} className="hover:text-emerald-400 transition-colors">Kalkulator ROI</Link></li>
-              <li><Link href="#harga" onClick={(e) => handleScrollTo(e, 'harga')} className="hover:text-emerald-400 transition-colors">Harga & Paket</Link></li>
+              {/* <li><Link href="#harga" onClick={(e) => handleScrollTo(e, 'harga')} className="hover:text-emerald-400 transition-colors">Harga & Paket</Link></li> */}
               <li><Link href="/dashboard" className="hover:text-emerald-400 transition-colors">Login Dashboard</Link></li>
             </ul>
           </div>
@@ -65,7 +65,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-6 tracking-wide">Perusahaan</h4>
             <ul className="space-y-4 text-sm font-medium text-slate-400">
-              <li><Link href="#tentang-kami" onClick={(e) => handleScrollTo(e, 'tentang-kami')} className="hover:text-emerald-400 transition-colors">Tentang Kami</Link></li>
+              {/* <li><Link href="#tentang-kami" onClick={(e) => handleScrollTo(e, 'tentang-kami')} className="hover:text-emerald-400 transition-colors">Tentang Kami</Link></li> */}
               <li><Link href="#" className="hover:text-emerald-400 transition-colors">Institut Pertanian Bogor</Link></li>
               <li><Link href="#" className="hover:text-emerald-400 transition-colors">Hubungi Sales</Link></li>
               <li><Link href="#" className="hover:text-emerald-400 transition-colors">Pusat Bantuan</Link></li>
