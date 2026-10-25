@@ -134,7 +134,7 @@ export default function RegisterPage() {
       {/* Logo */}
       <div className="flex justify-center mb-8">
         <Link href="/">
-          <Image src="/image/Logo KaMoo.png" alt="KaMoo" width={140} height={45} className="object-contain hover:scale-105 transition-transform" />
+          <Image src="/image/Logo KaMoo.png" alt="KaMoo" width={120} height={97} className="h-14 w-auto object-contain hover:scale-105 transition-transform" />
         </Link>
       </div>
       

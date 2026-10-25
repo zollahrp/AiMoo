@@ -89,13 +89,12 @@ export default function Navbar() {
           {/* Logo Section */}
           <div className="flex-shrink-0 flex items-center transform transition-transform duration-300 hover:scale-105">
             <Link href="#hero" onClick={(e) => handleScrollTo(e, 'hero')} className="flex items-center gap-2">
-              {/* 2. PAKAI LOGO GAMBAR SEKARANG */}
               <Image 
                 src="/image/Logo KaMoo.png" // Path dari folder public
                 alt="Logo KaMoo" 
-                width={90} 
-                height={42} 
-                className="object-contain" // Biar gambarnya gak gepeng
+                width={120} 
+                height={97} 
+                className="h-10 sm:h-11 w-auto object-contain" // Preserves aspect ratio and prevents header overflow
                 priority // Penting buat logo LCP optimization
               />
             </Link>

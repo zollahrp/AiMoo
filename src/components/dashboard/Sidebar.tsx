@@ -83,7 +83,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center justify-center h-20 border-b border-slate-100 shrink-0">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/image/Logo KaMoo.png" alt="KaMoo Logo" width={110} height={35} className="object-contain" />
+          <Image src="/image/Logo KaMoo.png" alt="KaMoo Logo" width={120} height={97} className="h-11 w-auto object-contain" />
         </Link>
       </div>
 
