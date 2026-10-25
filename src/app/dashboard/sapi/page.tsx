@@ -188,8 +188,8 @@ export default function SapiPage() {
       const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
       const prompt = `
-        Kamu adalah sistem AI penganalisis kesehatan dan performa peternakan sapi perah (AI Moo).
-        Sapi: ${cowData.name} (Tag: ${cowData.tagNumber})
+        Kamu adalah sistem AI penganalisis kesehatan dan performa peternakan sapi perah (KaMoo).
+        Sapi: ${cowData.name} (No. Kalung: ${cowData.tagNumber})
         - Susu Hari Ini: ${todayMilk.toFixed(1)} Liter (Trend: ${milkTrend.toFixed(1)}% dari kemarin)
         - Suhu Tubuh IoT: ${cowData.liveMetrics?.temperature || 38.5} °C
         - Ruminasi IoT: ${cowData.liveMetrics?.rumination || 410} menit
@@ -495,7 +495,7 @@ export default function SapiPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1.5">ID Kalung (Tag)</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1.5">ID / Nomor Kalung</label>
                   <input type="text" value={cowForm.tagNumber} onChange={(e) => setCowForm({...cowForm, tagNumber: e.target.value})} required className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 cursor-text" />
                 </div>
                 <div>
@@ -741,7 +741,7 @@ export default function SapiPage() {
               <img src={cowData?.photoUrl || "/image/Logo KaMoo.png"} alt="Foto Sapi" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
-              <div className="text-slate-500 font-medium">ID Sapi</div><div className="font-bold text-slate-900">{cowData?.tagNumber}</div>
+              <div className="text-slate-500 font-medium">No. Kalung</div><div className="font-bold text-slate-900">{cowData?.tagNumber}</div>
               <div className="text-slate-500 font-medium">Status Repro</div><div className="font-bold text-indigo-600">{cowData?.currentStatus?.reproduction}</div>
               <div className="text-slate-500 font-medium">Kesehatan</div><div className={`font-bold ${cowData?.currentStatus?.health === 'Sehat' ? 'text-emerald-600' : 'text-red-500'}`}>{cowData?.currentStatus?.health}</div>
               <div className="text-slate-500 font-medium">Kelompok</div><div className="font-bold text-slate-900">{cowData?.group}</div>
